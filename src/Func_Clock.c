@@ -6,6 +6,9 @@
  */
 
 #include <Func_Clock.h>
+#include <Driver_Core.h>
+
+//#define DEBUG_SPEW
 
 /**
   * @brief  Starts clock functionality. If Vbat has been lost, fully configures LSE.

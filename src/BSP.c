@@ -34,7 +34,7 @@ uint16_t tempval = 0;
 uint32_t converted = 0;
 
 
-//I2C1_Byte_Write(TRIG_T_NHM, SHT_ADDR);
+I2C1_Byte_Write(TRIG_T_NHM, SHT_ADDR);
 delay_ms(100);
 tempval = I2C1_Byte_Read(SHT_ADDR);
 

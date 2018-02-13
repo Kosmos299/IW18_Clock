@@ -15,7 +15,7 @@ startup/%.o: ../startup/%.s
 	@echo 'Building file: $<'
 	@echo 'Invoking: MCU GCC Assembler'
 	@echo $(PWD)
-	arm-none-eabi-as -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -I"D:/My Designs/IW18_Clock/software/IW18_Software.git/trunk/IW18_CMSIS_v01/StdPeriph_Driver/inc" -I"D:/My Designs/IW18_Clock/software/IW18_Software.git/trunk/IW18_CMSIS_v01/inc" -I"D:/My Designs/IW18_Clock/software/IW18_Software.git/trunk/IW18_CMSIS_v01/CMSIS/device" -I"D:/My Designs/IW18_Clock/software/IW18_Software.git/trunk/IW18_CMSIS_v01/CMSIS/core" -g -o "$@" "$<"
+	arm-none-eabi-as -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -I"D:/My Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc" -I"D:/My Designs/IW18_Clock/software/Githubwc/trunk/inc" -I"D:/My Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/device" -I"D:/My Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/core" -g -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

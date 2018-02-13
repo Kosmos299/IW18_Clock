@@ -32,10 +32,10 @@ endif
 all: IW18_CMSIS_v01.elf
 
 # Tool invocations
-IW18_CMSIS_v01.elf: $(OBJS) $(USER_OBJS) D:\My\ Designs\IW18_Clock\software\IW18_Software.git\trunk\IW18_CMSIS_v01\LinkerScript.ld
+IW18_CMSIS_v01.elf: $(OBJS) $(USER_OBJS) D:\My\ Designs\IW18_Clock\software\Githubwc\trunk\LinkerScript.ld
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU GCC Linker'
-	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -T"D:\My Designs\IW18_Clock\software\IW18_Software.git\trunk\IW18_CMSIS_v01\LinkerScript.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "IW18_CMSIS_v01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
+	arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -mfloat-abi=soft -T"D:\My Designs\IW18_Clock\software\Githubwc\trunk\LinkerScript.ld" -Wl,-Map=output.map -Wl,--gc-sections -o "IW18_CMSIS_v01.elf" @"objects.list" $(USER_OBJS) $(LIBS) -lm
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
