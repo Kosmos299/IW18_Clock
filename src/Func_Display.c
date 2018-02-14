@@ -8,6 +8,8 @@
 #include <Func_Display.h>
 #include <BSP.h>
 
+
+
 void Disp_Update(uint32_t data_written)
 {
 	// divide data into segments

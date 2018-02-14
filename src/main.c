@@ -8,20 +8,15 @@
   ******************************************************************************
 */
 
-#include <BSP.h>  					//Board support package, pin definitions
+#include <BSP.h>  				//Board support package, pin definitions
+
 #include <Driver_ADC.h>
 #include <Driver_Timer.h>
 #include <Driver_UART.h>
 #include <Driver_I2C.h>
 #include <Driver_SPI.h>
 #include <Driver_NVIC.h>
-#include <Driver_Core.h>					//Core clock configuration
-
-
-//VFD Display Driving Routines
-	//I2C measurements
-		//Extension header interfaces config
-			//boost converter routines
+#include <Driver_Core.h>		//Core clock configuration
 
 #include <Func_Clock.h>
 
