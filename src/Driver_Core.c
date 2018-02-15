@@ -117,6 +117,12 @@ void RTC_Config (void)
 
 	/* finish RTC domain configuration */
 	RTC_ExitConfigMode();
+
+	/* remove write protection from BKP adresses */
+	//TODO CHECK IF GOOD IDEA!
+    RTC_ClearFlag(RTC_FLAG_SEC);						//Reset SECF flag, RTC->CRL, required to write into protected alarm register
+    while(RTC_GetFlagStatus(RTC_FLAG_SEC) == RESET){};
+    RTC_WaitForLastTask();
 }
 
 /**
@@ -130,4 +136,10 @@ void RTC_Resume(void)
 		RCC_APB1Periph_BKP |  //Backup power domain
 		RCC_APB1Periph_PWR    //Power functions
 		, ENABLE);
+	PWR_BackupAccessCmd(ENABLE);
+
+	//TODO CHECK IF GOOD IDEA!
+    RTC_ClearFlag(RTC_FLAG_SEC);						//Reset SECF flag, RTC->CRL, required to write into protected alarm register
+    while(RTC_GetFlagStatus(RTC_FLAG_SEC) == RESET){};
+    RTC_WaitForLastTask();
 }

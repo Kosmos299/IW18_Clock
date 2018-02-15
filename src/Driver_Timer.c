@@ -34,7 +34,7 @@ void TIM4_Config (void)
 	/* Display timer timebase config */
 	// 55Hz refresh * 9 segments = 459Hz, rounded to 500Hz (2ms) timer interrupt
 	// 32Mhz Timer clock, 3200 prescaler = 0,1ms per count
-	// 2ms/0,1ms = 200 count to reset
+	// 2ms/0,1ms = 200 counts to reset
 	// Interrupt on update
 
 	TIM_TimeBaseInitTypeDef TIM_TimeBase_InitStructure;

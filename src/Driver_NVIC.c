@@ -12,6 +12,8 @@
 
 #include "stm32f10x.h"
 
+uint8_t DispIRQFlag = 0, ClkIRQFlag = 0;
+
 /**
   * @brief  Configures the nested vectored interrupt controller.
   * @param  None
@@ -74,7 +76,6 @@ void RTC_IRQHandler(void)
 		RTC_ClearITPendingBit(RTC_IT_SEC);
 		/* interrupt code begin */
 
-		BSP_Time_Display();		// Enable time update
 		RTC_WaitForLastTask();	// Wait until last write operation on RTC registers has finished
 		/* interrupt code end */
 	}
@@ -105,6 +106,7 @@ void TIM2_IRQHandler()
 
 /**
   * @brief  TIM4 Update IRQ Handler.
+  * TIM4 is used as timebase for multiplexed display
   * @param  None
   * @retval None
   */
@@ -115,17 +117,30 @@ void TIM4_IRQHandler()
         TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
         /* interrupt code begin */
 
-        //Disp_Update(0xAAFF00AA);
-
-        /* dummy routine */
-        if (GPIO_ReadOutputDataBit(LED_PORT, STAT_LED))
-            GPIO_ResetBits(LED_PORT, STAT_LED);
-        else
-            GPIO_SetBits(LED_PORT, STAT_LED);
-        /* dummy routine end*/
+        DispIRQFlag = 1;
 
         /* interrupt code end */
     }
+}
+
+uint8_t CheckDispFlag()
+{
+	return DispIRQFlag;
+}
+
+void ResetDispFlag()
+{
+	DispIRQFlag = 0;
+}
+
+uint8_t CheckClkFlag()
+{
+	return ClkIRQFlag;
+}
+
+void ResetClkFlag()
+{
+	ClkIRQFlag = 0;
 }
 
 /*

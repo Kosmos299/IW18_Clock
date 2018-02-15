@@ -23,7 +23,7 @@ void Next_Month(uint32_t TMM);
 void Next_Year(uint32_t TYY);
 uint8_t IsLeap(uint32_t TYY);
 
-void Update_Date(void);
+void Increment_Date(void);
 void Clock_Update(void);
 
 void BSP_Time_Display(void);

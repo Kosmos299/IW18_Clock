@@ -19,11 +19,12 @@
 #include <Driver_Core.h>		//Core clock configuration
 
 #include <Func_Clock.h>
+#include <Func_Display.h>
 
 #include "Utility.h"				//Utility functions
 #include "stm32f10x.h"
 
-#define DEBUG_SPEW
+//#define DEBUG_SPEW
 
 
 int main(void)
@@ -35,7 +36,7 @@ int main(void)
 	NVIC_Config();
 
 	//display routine startup
-	//TIM4_Config();
+	TIM4_Config();
 	//SPI1_Config();
 
 	//boost converter startup
@@ -49,17 +50,16 @@ int main(void)
 	//clock functionalities
 	Clock_Init();
 
-
 	/* pre-code */
+	printf("Initialization...  DONE\n\r");
+
 #ifdef DEBUG_SPEW
 	//BSP_GetVbus();
     //BSP_GetVlux();
     //BSP_GetTemp();
     //BSP_GetHumid();
-    printf("Initialization...  DONE\n\r");
+
 #endif
-
-
 
 /////////////////////////////////////////////////////
     while (1)
@@ -75,10 +75,37 @@ int main(void)
     //BSP_Time_Display();
 #endif
     /* main loop led blink */
-    GPIO_SetBits(LED_PORT, ERR_LED);
-    delay_ms(100);
-    GPIO_ResetBits(LED_PORT, ERR_LED);
-    delay_ms(200);
+
+    /* check display refresh flag triggered in IRQ */
+    if (CheckDispFlag()==1)
+    {
+    	ResetDispFlag();
+		Display_Update();
+
+        /* dummy routine */
+        if (GPIO_ReadOutputDataBit(LED_PORT, STAT_LED))
+            GPIO_ResetBits(LED_PORT, STAT_LED);
+        else
+            GPIO_SetBits(LED_PORT, STAT_LED);
+        /* dummy routine end*/
+    }
+
+    /* check clock refresh flag triggered in IRQ */
+    if (CheckClkFlag()==1)
+    {
+    	ResetClkFlag();
+		Clock_Update();
+
+        /* dummy routine */
+        if (GPIO_ReadOutputDataBit(LED_PORT, STAT_LED))
+            GPIO_ResetBits(LED_PORT, STAT_LED);
+        else
+            GPIO_SetBits(LED_PORT, STAT_LED);
+        /* dummy routine end*/
+
+		BSP_Time_Display();		// Enable time update
+    }
+
 
 
     }

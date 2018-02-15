@@ -16,6 +16,8 @@ uint8_t Month_Len[12] =
     31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
   };
 
+uint8_t HRS = 0, MIN = 0, SEC = 0;
+
 
 /**
   * @brief  Starts clock functionality. If Vbat has been lost, fully configures LSE.
@@ -35,7 +37,7 @@ void Clock_Init(void)
 	    /* RTC Configuration */
 	    RTC_Config();
 	    Set_Time(12,0,0);
-	    Set_Date(14,2,2018);
+	    Set_Date(15,2,2018);
 #ifdef DEBUG_SPEW
 	    printf("\r\n RTC configured....");
 #endif
@@ -63,7 +65,6 @@ void Clock_Init(void)
 	    RTC_WaitForLastTask();
 	    /* Update calendar */
 	    RTC_Resume();
-	    Clock_Update();
 	}
 }
 
@@ -125,7 +126,8 @@ void Set_Date(uint32_t Tmp_DD, uint32_t Tmp_MM, uint32_t Tmp_YY)
   */
 void Next_Day(uint32_t TDD)
 {
-	BKP_WriteBackupRegister(BKP_DR2, TDD++);
+	TDD++;
+	BKP_WriteBackupRegister(BKP_DR2, TDD);
 }
 
 /**
@@ -136,8 +138,9 @@ void Next_Day(uint32_t TDD)
   */
 void Next_Month(uint32_t TMM)
 {
+	TMM++;
 	BKP_WriteBackupRegister(BKP_DR2, 1);
-	BKP_WriteBackupRegister(BKP_DR3, TMM++);
+	BKP_WriteBackupRegister(BKP_DR3, TMM);
 }
 
 /**
@@ -148,9 +151,10 @@ void Next_Month(uint32_t TMM)
   */
 void Next_Year(uint32_t TYY)
 {
+	TYY++;
 	BKP_WriteBackupRegister(BKP_DR2, 1);
 	BKP_WriteBackupRegister(BKP_DR3, 1);
-	BKP_WriteBackupRegister(BKP_DR4, TYY++);
+	BKP_WriteBackupRegister(BKP_DR4, TYY);
 }
 
 /**
@@ -181,7 +185,7 @@ uint8_t IsLeap(uint32_t TYY)
   * @param  none
   * @retval none
   */
-void Update_Date()
+void Increment_Date()
 {
 	uint32_t TDD = 0, TMM = 0, TYY = 0;
 
@@ -200,7 +204,7 @@ void Update_Date()
 	}
 
 	/* increment date registers */
-	if(TDD < Month_Len[TMM])
+	if(TDD < Month_Len[TMM-1])
 	{
 		Next_Day(TDD); 			// not last day, -> increment day
 	}
@@ -235,13 +239,18 @@ void Clock_Update()
 	  while (TimeVar > SECONDS_PER_DAY)
 	  {
 		  //Full day(s) has elapsed, change date
-		  Update_Date();
-		  TimeVar = TimeVar - SECONDS_PER_DAY;
+		  Increment_Date();
+		  TimeVar -= SECONDS_PER_DAY;
+		  RTC_SetCounter(TimeVar);
+		  RTC_WaitForLastTask();
 	  }
-	  RTC_SetCounter(TimeVar);
 
 	  /* Update Display Indexes */
-	  //TODO
+	  //TODO Display indexing
+	  HRS = TimeVar / 3600; 		// Compute  hours
+	  MIN = (TimeVar % 3600) / 60;	// Compute  minutes
+	  SEC = (TimeVar % 3600) % 60;	// Compute  seconds
+
 }
 
 /**
@@ -261,7 +270,7 @@ void BSP_Time_Display()
   TMM = (TimeVar % 3600) / 60;	// Compute  minutes
   TSS = (TimeVar % 3600) % 60;	// Compute  seconds
 
-  printf("Time: %d:%d:%d\n\r", THH, TMM, TSS);
+  printf("Time: %d:%d:%d ", THH, TMM, TSS);
 
   THH = BKP_ReadBackupRegister(BKP_DR2);
   TMM = BKP_ReadBackupRegister(BKP_DR3);
