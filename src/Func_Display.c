@@ -9,8 +9,9 @@
 #include <Func_Clock.h>
 #include <BSP.h>
 
-uint32_t Symbols [12] =
+uint32_t Symbols [13] =
 {
+		0x00000000,	// blank
 		0x040BC000,	// 0
 		0x00028000,	// 1
 		0x04054000,	// 2
@@ -26,7 +27,6 @@ uint32_t Symbols [12] =
 		//add next
 };
 
-
 uint32_t Grids [9] =
 {
 		0x01000000,	// 1
@@ -40,8 +40,21 @@ uint32_t Grids [9] =
 		0x02000000,	// 9
 };
 
+uint8_t Content [9] =
+{
+		0x00,	// 1
+		0x01,	// 2
+		0x02,	// 3
+		0x03,	// 4
+		0x04,	// 5
+		0x05,	// 6
+		0x06,	// 7
+		0x07,	// 8
+		0x08,	// 9
+};
+
 #define DECPOINT 0x00002000
-#define DEBUG_SPEW
+//#define DEBUG_SPEW
 
 uint8_t SelectedDigit = 0;
 
@@ -82,6 +95,9 @@ void VFD_Set(uint32_t data_written)
  */
 void Display_Update()
 {
+	uint32_t disp_content = 0;
+
+	/* skip to next digit */
     if (SelectedDigit==8)
     {
     	SelectedDigit=0;
@@ -90,6 +106,12 @@ void Display_Update()
     {
     	SelectedDigit++;
     }
+
+    /* prepare data */
+    disp_content = Symbols[Content[SelectedDigit]] + Grids[SelectedDigit];
+
+    /* push data to controller */
+    VFD_Set(disp_content);
 
 #ifdef DEBUG_SPEW
     printf("Display Digit = %d\n\r", SelectedDigit);

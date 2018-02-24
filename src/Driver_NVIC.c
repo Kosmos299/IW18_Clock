@@ -66,6 +66,7 @@ void NVIC_Config(void)
 
 /**
   * @brief  RTC Seconds IRQ Handler.
+  * used as tikebase for clock state update
   * @param  None
   * @retval None
   */
@@ -76,13 +77,15 @@ void RTC_IRQHandler(void)
 		RTC_ClearITPendingBit(RTC_IT_SEC);
 		/* interrupt code begin */
 
-		RTC_WaitForLastTask();	// Wait until last write operation on RTC registers has finished
+		ClkIRQFlag = 1;
+
 		/* interrupt code end */
 	}
 }
 
 /**
   * @brief  TIM2 Update IRQ Handler.
+  * boost pwm
   * @param  None
   * @retval None
   */

@@ -37,7 +37,7 @@ void Clock_Init(void)
 	    /* RTC Configuration */
 	    RTC_Config();
 	    Set_Time(12,0,0);
-	    Set_Date(15,2,2018);
+	    Set_Date(1,1,2018);
 #ifdef DEBUG_SPEW
 	    printf("\r\n RTC configured....");
 #endif
@@ -63,7 +63,6 @@ void Clock_Init(void)
 	    /* Wait for RTC registers synchronization */
 	    RTC_WaitForSynchro();
 	    RTC_WaitForLastTask();
-	    /* Update calendar */
 	    RTC_Resume();
 	}
 }
@@ -241,9 +240,9 @@ void Clock_Update()
 		  //Full day(s) has elapsed, change date
 		  Increment_Date();
 		  TimeVar -= SECONDS_PER_DAY;
-		  RTC_SetCounter(TimeVar);
-		  RTC_WaitForLastTask();
 	  }
+	  RTC_SetCounter(TimeVar);
+	  RTC_WaitForLastTask();
 
 	  /* Update Display Indexes */
 	  //TODO Display indexing
