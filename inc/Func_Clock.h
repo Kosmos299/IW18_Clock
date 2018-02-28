@@ -16,6 +16,7 @@
 void Clock_Init(void);
 void Set_Time(uint32_t Tmp_HH, uint32_t Tmp_MM, uint32_t Tmp_SS);
 void Set_Date(uint32_t Tmp_DD, uint32_t Tmp_MM, uint32_t Tmp_YY);
+void Get_Date(uint8_t* Tmp_DD, uint8_t* Tmp_MM, uint16_t* Tmp_YY);
 void Set_Alarm(uint32_t Tmp_HH, uint32_t Tmp_MM, uint32_t Tmp_SS);
 
 void Next_Day(uint32_t TDD);

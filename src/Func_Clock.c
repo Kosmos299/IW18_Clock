@@ -111,12 +111,47 @@ void Set_Alarm(uint32_t Tmp_HH, uint32_t Tmp_MM, uint32_t Tmp_SS)
   *
   * @retval None
   */
-void Set_Date(uint32_t Tmp_DD, uint32_t Tmp_MM, uint32_t Tmp_YY)
+void Set_Date(uint32_t Tmp_DD, uint32_t Tmp_MM, uint32_t Tmp_YY) //uint8_t Tmp_DD, uint8_t Tmp_MM, uint16_t Tmp_YY
 {
+
+
 	BKP_WriteBackupRegister(BKP_DR2, Tmp_DD);
 	BKP_WriteBackupRegister(BKP_DR3, Tmp_MM);
 	BKP_WriteBackupRegister(BKP_DR4, Tmp_YY);
+
+	// NewFunc in single register
+
+	/* 8 bits for day [0-31], 5 bits for month [0-15], 12 bits for year [0-4096] 7 bits left unused
+	uint32_t Tmp_Reg = 0;
+	Tmp_Reg = (Tmp_DD << 24) + (Tmp_MM << 16) + Tmp_YY;
+	BKP_WriteBackupRegister(BKP_DR2, Tmp_Reg);
+
+	 */
 }
+
+/**
+  * @brief  Sets new date.
+  * @param  TmpDD: Days to set.
+  * @param  TmpMM: Months to set.
+  * @param  TmpYY: Years to set.
+  *
+  * note: uses 3 registers, while could be coded on one. If required, reimplement this.
+  *
+  * @retval None
+  */
+void Get_Date(uint8_t* Tmp_DD, uint8_t* Tmp_MM, uint16_t* Tmp_YY)
+{
+	uint32_t Tmp_Reg = 0;
+
+	// 8 bits for day [0-31], 5 bits for month [0-15], 12 bits for year [0-4096] 7 bits left unused
+	uint32_t Tmp_Reg = 0;
+	Tmp_Reg = BKP_ReadBackupRegister(BKP_DR2);
+
+	&Tmp_DD = Tmp_Reg >> 24;
+	Tmp_MM  = Tmp_Reg >> 16;
+	Tmp_YY  = Tmp_Reg ;
+}
+
 
 /**
   * @brief  Increases days counter.
@@ -206,16 +241,19 @@ void Increment_Date()
 	if(TDD < Month_Len[TMM-1])
 	{
 		Next_Day(TDD); 			// not last day, -> increment day
+		//Set_Date(TDD+1,TMM,TYY);
 	}
 	else
 	{
 		if(TMM == 12) 			//last day of December -> new year
 		{
 			Next_Year(TYY);
+			//Set_Date(1,1,TYY+1);
 		}
 		else					//last day of month other than December -> new month
 		{
 			Next_Month(TMM);
+			//Set_Date(1,TMM+1,TYY);
 		}
 	}
 }

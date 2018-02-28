@@ -77,12 +77,14 @@ int main(void)
 			ResetDispFlag();
 			Display_Update();
 
+#ifdef DEBUG_SPEW
 			/* dummy routine */
 			if (GPIO_ReadOutputDataBit(LED_PORT, STAT_LED))
 				GPIO_ResetBits(LED_PORT, STAT_LED);
 			else
 				GPIO_SetBits(LED_PORT, STAT_LED);
 			/* dummy routine end*/
+#endif
 		}
 
 		/* check clock refresh flag triggered in IRQ */
@@ -91,6 +93,7 @@ int main(void)
 			ResetClkFlag();
 			Clock_Update();
 
+#ifdef DEBUG_SPEW
 			/* dummy routine */
 			if (GPIO_ReadOutputDataBit(LED_PORT, STAT_LED))
 				GPIO_ResetBits(LED_PORT, ERR_LED);
@@ -99,6 +102,7 @@ int main(void)
 			/* dummy routine end*/
 
 			BSP_Time_Display();		// Enable time update
+#endif
 		}
 
 
