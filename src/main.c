@@ -3,110 +3,203 @@
  * @file    main.c
  * @author  Dawid.Adamik
  * @version V1.0
- * @date    02-11-2017
+ * @date    17-03-2018
  * @brief   Main function.
  ******************************************************************************
  */
-
-#include <BSP.h>  				//Board support package, pin definitions
+/*** Includes ****************************************************************/
+#include <BSP.h>
+//#include <Driver_I2C.h>
 #include <Driver_ADC.h>
-#include <Driver_Core.h>		//Core clock configuration
-#include <Driver_NVIC.h>
+
+#include <Driver_GPIO.h>
 #include <Driver_Timer.h>
-#include <Driver_UART.h>
+#include <Driver_Core.h>
+#include <Driver_Terminal.h>
+
 #include <Func_Clock.h>
 #include <Func_Display.h>
+#include <Func_System.h>
+#include <Func_Boost.h>
+
 #include <stm32f10x_gpio.h>
 
-//#define DEBUG_SPEW
+/*** Preprocessor definitions ************************************************/
+#define DEBUG_BLINK
+
+#define RELEASE_NUMBER_MAJOR 0
+#define RELEASE_NUMBER_MINOR1 1
+#define RELEASE_NUMBER_MINOR2 2
+#define RELEASE_NUMBER_BUILD1 0
+#define RELEASE_NUMBER_BUILD2 0
+#define BUILD_ID 20
+
+#ifdef DEBUG_BLINK
+#warning DEBUG ENABLED
+#endif
 
 
+/*** Definition of variables *************************************************/
+/* NO DEFINITIONS */
+
+/*** Prototypes of functions *************************************************/
+void Debug_WelcomePrintout(void);
+void ShowClocks(void);
+void ShowResetSource(void);
+
+/*** Definitions of functions ************************************************/
 int main(void)
 {
-	/* HW initialization */
-	//basic configuration
-	RCC_Config();				// Clock path config
-	GPIO_Config();				// GPIO/BSP config
-	NVIC_Config();
+	//system configuration
+	System_Init();
 
-	//display routine startup
-	TIM4_Config();
-	//SPI1_Config();
-
-	//boost converter startup
-	//TIM2_Config();
-	ADC1_Config();				// ADC config
-
-	//I2C1_Config();				// Temperature and humidity sensor on I2C bus
-	USART1_Config();			// Debug terminal 56000
-
-
-	//clock functionalities
+	//clock startup
+	Boost_Init();
+	Display_Init();
 	Clock_Init();
 
-	/* pre-code */
+	#ifdef DEBUG_BLINK
+	Debug_WelcomePrintout();
+	#endif
 
+/*** infinite loop ***********************************************************/
+while (1)
+{
+	State_Machine(); //??
 
-#ifdef DEBUG_SPEW
-	printf("Initialization...  DONE\n\r");
-	//BSP_GetVbus();
-	//BSP_GetVlux();
-	//BSP_GetTemp();
-	//BSP_GetHumid();
-
-#endif
-
-	/////////////////////////////////////////////////////
-	while (1)
+	/* 100us IRQ routines ********/
+	if (CheckDispFlag()==1)
 	{
+		#ifdef DEBUG_BLINK
+		DBG_LED_Toggle(STAT_LED);
+		#endif
 
-
-#ifdef DEBUG_SPEW
-
-		//BSP_GetVbus();
-		//BSP_GetVlux();
-		//BSP_GetTemp();
-		//BSP_GetHumid();
-		//BSP_Time_Display();
-#endif
-		/* main loop led blink */
-
-		/* check display refresh flag triggered in IRQ */
-		if (CheckDispFlag()==1)
-		{
-			ResetDispFlag();
-			Display_Update();
-
-#ifdef DEBUG_SPEW
-			/* dummy routine */
-			if (GPIO_ReadOutputDataBit(LED_PORT, STAT_LED))
-				GPIO_ResetBits(LED_PORT, STAT_LED);
-			else
-				GPIO_SetBits(LED_PORT, STAT_LED);
-			/* dummy routine end*/
-#endif
-		}
-
-		/* check clock refresh flag triggered in IRQ */
-		if (CheckClkFlag()==1)
-		{
-			ResetClkFlag();
-			Clock_Update();
-
-#ifdef DEBUG_SPEW
-			/* dummy routine */
-			if (GPIO_ReadOutputDataBit(LED_PORT, STAT_LED))
-				GPIO_ResetBits(LED_PORT, ERR_LED);
-			else
-				GPIO_SetBits(LED_PORT, ERR_LED);
-			/* dummy routine end*/
-
-			BSP_Time_Display();		// Enable time update
-#endif
-		}
-
-
-
+		Display_Update();
+		/* clear flag */
+		ResetDispFlag();
 	}
+	/* 2ms IRQ routines end ******/
+
+	/* 1s RTC IRQ routines *******/
+	if (CheckClkFlag()==1)
+	{
+		#ifdef DEBUG_BLINK
+		Debug_Time_Display();
+		//DBG_Test_SHT();
+		//DBG_Test_ADC();
+		#endif
+
+		Clock_Update();
+		/* clear flag */
+		ResetClkFlag();
+	}
+	/* 1s IRQ routines end *******/
+
+/*** infinite loop end********************************************************/
+}
+/*** main end*****************************************************************/
 }
 
+/******************************************************
+ ** Name            : Debug_WelcomePrintout
+ **
+ ** Created from/on : AD / 27.11.2015
+ **
+ ** Description     : Welcome Printout. Just for debug.
+ **
+ ** Calling         : not important
+ **
+ ** InputValues     : none
+ ** OutputValues    : none
+ ******************************************************/
+void Debug_WelcomePrintout(void)
+{
+  TERMINAL("\r\n================ KOSMOS ===============\r\n");
+  TERMINAL("        IW-18 VFD Clock       \r\n");
+  TERMINAL("        ver. %d", RELEASE_NUMBER_MAJOR);
+  TERMINAL(".%d", RELEASE_NUMBER_MINOR1);
+  TERMINAL("%d", RELEASE_NUMBER_MINOR2);
+  TERMINAL(".%d", RELEASE_NUMBER_BUILD1);
+  TERMINAL("%d", RELEASE_NUMBER_BUILD2);
+  TERMINAL(".%d\r\n", BUILD_ID);
+  TERMINAL("        build: %s %s\r\n", __DATE__, __TIME__);
+  TERMINAL("========================================\r\n");
+  ShowClocks();
+  ShowResetSource();
+}
+
+/******************************************************
+ ** Name            : ShowClocks
+ **
+ ** Created from/on : RM / 13.11.2015
+ **
+ ** Description     : This function displays clocks on usart debug interface
+ **                   just to check if RCC is configured correctly
+ **
+ ** Calling         : not important
+ **
+ ** InputValues     : none
+ ** OutputValues    : none
+ ******************************************************/
+void ShowClocks(void)
+{
+  RCC_ClocksTypeDef stRCC_ClockFreq;
+  RCC_GetClocksFreq(&stRCC_ClockFreq);
+
+  TERMINAL("------ System clocks ------\r\n");
+  TERMINAL("SYSCLK = %d Hz\r\n", stRCC_ClockFreq.SYSCLK_Frequency);
+  TERMINAL("HCLK   = %d Hz\r\n", stRCC_ClockFreq.HCLK_Frequency);
+  TERMINAL("PCLK1  = %d Hz\r\n", stRCC_ClockFreq.PCLK1_Frequency);
+  TERMINAL("PCLK2  = %d Hz\r\n", stRCC_ClockFreq.PCLK2_Frequency);
+  TERMINAL("========================================\r\n");
+}
+
+/******************************************************
+ ** Name            : ShowResetSource
+ **
+ ** Created from/on : RM / 13.11.2015
+ **
+ ** Description     : This function displays reset reason, sometimes
+ **                   important to diagnose WDT problem
+ **
+ ** Calling         : not important
+ **
+ ** InputValues     : none
+ ** OutputValues    : none
+ ******************************************************/
+void ShowResetSource(void)
+{
+  if (RCC_GetFlagStatus(RCC_FLAG_HSIRDY) != RESET)
+    TERMINAL("RST: HSI oscillator clock ready\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_HSERDY) != RESET)
+    TERMINAL("RST: HSE oscillator clock ready\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_PLLRDY) != RESET)
+    TERMINAL("RST: PLL clock ready\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_LSERDY) != RESET)
+    TERMINAL("RST: LSE oscillator clock ready\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_LSIRDY) != RESET)
+    TERMINAL("RST: LSI oscillator clock ready\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_PINRST) != RESET)
+    TERMINAL("RST: Pin reset\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_PORRST) != RESET)
+    TERMINAL("RST: POR/PDR reset\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_SFTRST) != RESET)
+    TERMINAL("RST: Software reset\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_IWDGRST) != RESET)
+    TERMINAL("RST: Independent Watchdog reset\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_WWDGRST) != RESET)
+    TERMINAL("RST: Window Watchdog reset\r\n");
+
+  if (RCC_GetFlagStatus(RCC_FLAG_LPWRRST) != RESET)
+    TERMINAL("RST: Low Power reset\r\n");
+  TERMINAL("========================================\r\n\r\n");
+}

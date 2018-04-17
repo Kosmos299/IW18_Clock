@@ -8,8 +8,14 @@
 #ifndef DRIVER_CORE_H_
 #define DRIVER_CORE_H_
 
+#include <stdint.h>
+#include <Utilities.h>
+
 void RCC_Config(void);
 void RTC_Config (void);
 void RTC_Resume(void);
+
+bool CheckClkFlag(void);
+void ResetClkFlag(void);
 
 #endif /* DRIVER_CORE_H_ */

@@ -1,7 +1,5 @@
 src/Driver_ADC.o: ../src/Driver_ADC.c \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_ADC.h \
- D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/BSP.h \
- D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_I2C.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/device/stm32f10x.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/core/core_cm3.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/device/system_stm32f10x.h \
@@ -30,13 +28,10 @@ src/Driver_ADC.o: ../src/Driver_ADC.c \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_wwdg.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/misc.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/device/system_stm32f10x.h \
- D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Utility.h
+ D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_Terminal.h \
+ D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Utilities.h
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_ADC.h:
-
-D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/BSP.h:
-
-D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_I2C.h:
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/device/stm32f10x.h:
 
@@ -94,4 +89,6 @@ D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/misc.h:
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/device/system_stm32f10x.h:
 
-D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Utility.h:
+D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_Terminal.h:
+
+D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Utilities.h:

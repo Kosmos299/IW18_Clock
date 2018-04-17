@@ -6,7 +6,9 @@
  */
 
 #include <Driver_ADC.h>
-#include <BSP.h>
+
+#include <stm32f10x.h>
+#include <system_stm32f10x.h>
 
 /**
   * @brief ADC Config
@@ -54,4 +56,28 @@ int ADC1_Read(int channel)
     while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));
 
     return ADC_GetConversionValue(ADC1);
+}
+
+//////////////////////
+//HW DEBUG
+/////////////////////
+#include <Driver_Terminal.h>
+
+/**
+  * @brief  test-polls SHT21, sends converted content via uart.
+  * WARNING: THIS IS DEBUG FUNCTION
+  * @param  None
+  * @retval None
+  */
+void DBG_Test_ADC(void)
+{
+	uint16_t tempval = 0;
+	tempval = ADC1_Read(AN_CHN_VBUS);
+	TERMINAL("Vbus: ADC = %d,", tempval);
+	TERMINAL(" Voltage = %d [mV]\n\r", tempval * 3300*11 / 4096); // hardware divided by 11, measure in mV
+
+	tempval = 0;
+	tempval = ADC1_Read(AN_CHN_LIGHT);
+	TERMINAL("Vlux: ADC = %d,", tempval);
+	TERMINAL(" Voltage = %d [mV]\n\r", tempval * 3300 / 4096); // direct measure, in mV
 }

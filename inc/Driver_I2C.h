@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#define I2C_PORT GPIOB
+#define I2C_SCL 		GPIO_Pin_6
+#define I2C_SDA 		GPIO_Pin_7
+
 /* SHT21 register definition */
 #define SHT_ADDR 	0x80 //0x40 << 1
 #define TRIG_T_HM 	0xE3
@@ -58,5 +62,7 @@ uint8_t I2C1_Byte_Read(uint8_t address_r);
 uint16_t I2C1_Two_Byte_Read(uint8_t target_address);
 //uint16_t I2C1_Two_Byte_Read_From_Register(uint8_t register_address, uint8_t target_address);
 void I2C1_N_Byte_Burst_Read_From_Register(uint8_t target_address, uint8_t register_address, uint8_t* data_received, uint8_t byte_count);
+
+void DBG_Test_SHT(void);
 
 #endif

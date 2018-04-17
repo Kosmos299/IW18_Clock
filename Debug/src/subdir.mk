@@ -4,52 +4,55 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/BSP.c \
 ../src/Driver_ADC.c \
 ../src/Driver_Core.c \
+../src/Driver_GPIO.c \
 ../src/Driver_I2C.c \
-../src/Driver_NVIC.c \
 ../src/Driver_SPI.c \
+../src/Driver_Terminal.c \
 ../src/Driver_Timer.c \
-../src/Driver_UART.c \
+../src/Func_Boost.c \
 ../src/Func_Clock.c \
 ../src/Func_Display.c \
+../src/Func_System.c \
 ../src/Hasiok.c \
-../src/Utility.c \
+../src/Utilities.c \
 ../src/main.c \
 ../src/syscalls.c \
 ../src/system_stm32f10x.c 
 
 OBJS += \
-./src/BSP.o \
 ./src/Driver_ADC.o \
 ./src/Driver_Core.o \
+./src/Driver_GPIO.o \
 ./src/Driver_I2C.o \
-./src/Driver_NVIC.o \
 ./src/Driver_SPI.o \
+./src/Driver_Terminal.o \
 ./src/Driver_Timer.o \
-./src/Driver_UART.o \
+./src/Func_Boost.o \
 ./src/Func_Clock.o \
 ./src/Func_Display.o \
+./src/Func_System.o \
 ./src/Hasiok.o \
-./src/Utility.o \
+./src/Utilities.o \
 ./src/main.o \
 ./src/syscalls.o \
 ./src/system_stm32f10x.o 
 
 C_DEPS += \
-./src/BSP.d \
 ./src/Driver_ADC.d \
 ./src/Driver_Core.d \
+./src/Driver_GPIO.d \
 ./src/Driver_I2C.d \
-./src/Driver_NVIC.d \
 ./src/Driver_SPI.d \
+./src/Driver_Terminal.d \
 ./src/Driver_Timer.d \
-./src/Driver_UART.d \
+./src/Func_Boost.d \
 ./src/Func_Clock.d \
 ./src/Func_Display.d \
+./src/Func_System.d \
 ./src/Hasiok.d \
-./src/Utility.d \
+./src/Utilities.d \
 ./src/main.d \
 ./src/syscalls.d \
 ./src/system_stm32f10x.d 

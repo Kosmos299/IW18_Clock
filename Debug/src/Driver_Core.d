@@ -1,5 +1,6 @@
 src/Driver_Core.o: ../src/Driver_Core.c \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_Core.h \
+ D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Utilities.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_conf.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_adc.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/device/stm32f10x.h \
@@ -30,6 +31,8 @@ src/Driver_Core.o: ../src/Driver_Core.c \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_rcc.h
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_Core.h:
+
+D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Utilities.h:
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_conf.h:
 

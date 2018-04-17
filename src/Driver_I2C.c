@@ -1,6 +1,7 @@
 #include <Driver_I2C.h>
 
 #include <BSP.h>
+#include <Utilities.h>
 #include "stdio.h"
 #include "stdlib.h"
 #include "stdint.h"
@@ -26,7 +27,7 @@ void I2C1_Config(void){
     I2C_StructInit(&I2C_InitStruct);
     /* Configure I2C1 */
     I2C_DeInit(I2C1);
-
+    I2C_DeInit(I2C1);
     /* Set the I2C structure parameters */
     I2C_InitStruct.I2C_Mode = I2C_Mode_I2C;
     I2C_InitStruct.I2C_DutyCycle = I2C_DutyCycle_2;
@@ -287,4 +288,46 @@ void I2C1_N_Byte_Burst_Read_From_Register(uint8_t target_address, uint8_t regist
 	I2C_GenerateSTOP(I2C1, ENABLE); 								    		//Generate stop sequence 						- P
 	I2C_AcknowledgeConfig(I2C1, ENABLE);										//Re-enable acknowledge check
 
+}
+
+//////////////////////
+//HW DEBUG
+/////////////////////
+#include <Driver_Terminal.h>
+#include <Func_System.h>
+
+/**
+  * @brief  test-polls SHT21, sends converted content via uart.
+  * WARNING: THIS IS DEBUG FUNCTION
+  * @param  None
+  * @retval None
+  */
+void DBG_Test_SHT(void)
+{
+	uint16_t tempval = 0;
+	uint32_t converted = 0;
+
+
+	I2C1_Byte_Write(TRIG_T_NHM, SHT_ADDR);
+	delay(13200);
+	tempval = I2C1_Byte_Read(SHT_ADDR);
+
+	converted = tempval * 100 * 175.720 / 65536;
+	converted = converted - 4685;
+
+	TERMINAL("Temperature: REG = %d,", tempval);
+	TERMINAL(" Temperature = %d [mK]\n\r", converted); // measure in mK
+
+	tempval = 0;
+	converted = 0;
+
+	I2C1_Byte_Write(TRIG_H_NHM, SHT_ADDR);
+	delay_ms(250);
+	tempval = I2C1_Byte_Read(SHT_ADDR);
+
+	converted = tempval * 100 * 125 / 65536;
+	converted = converted - 600;
+
+	TERMINAL("Humidity: REG = %d,", tempval);
+	TERMINAL(" Relative Humidity = %d [%]\n\r", converted); // measure in %
 }

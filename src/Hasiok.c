@@ -17,66 +17,6 @@
 
 //void Configuration_Interrupts(void)
 //{
-//	//zdefiniowanie struktury wykorzystywanej do konfiguracji przerwani
-//	NVIC_InitTypeDef NVIC_InitStructure;
-//	EXTI_InitTypeDef EXTI_InitStructure;
-//	RCC_ClocksTypeDef RCC_Clocks;
-//
-//	//skonfigurowanie miejsca przechowywania tablicy wektorow przerwan
-//	NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);
-//
-//	//konfiguracja podzialu priorytetow przerwan: 4 grupy, 4 podgrupy
-//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-//
-//	//w³¹czenie obs³ugi alarmu
-//	if(alarm_state == 1)
-//	{
-//		//konfiguracja przerwan pochodzacych od RTC Alarm
-//		EXTI_ClearITPendingBit(EXTI_Line17);
-//		EXTI_InitStructure.EXTI_Line = EXTI_Line17;
-//		EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-//		EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
-//		EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-//		EXTI_Init(&EXTI_InitStructure);
-//		//generowanie przerwania przez RTC Alarm
-//		RTC_ITConfig(RTC_IT_ALR, ENABLE);
-//		//odczekanie na zakoñczenie operacji
-//		RTC_WaitForLastTask();
-//	}
-//	//wy³¹czenie obs³ugi alarmu
-//	else
-//	{
-//		//konfiguracja przerwan pochodzacych od RTC Alarm
-//		EXTI_ClearITPendingBit(EXTI_Line17);
-//		EXTI_InitStructure.EXTI_Line = EXTI_Line17;
-//		EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
-//		EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
-//		EXTI_InitStructure.EXTI_LineCmd = DISABLE;
-//		EXTI_Init(&EXTI_InitStructure);
-//		//generowanie przerwania przez RTC Alarm
-//		RTC_ITConfig(RTC_IT_ALR, ENABLE);
-//		//odczekanie na zakoñczenie operacji
-//		RTC_WaitForLastTask();
-//	}
-//
-//	//konfiguracja przerwan pochodzacych od RTC
-//	NVIC_InitStructure.NVIC_IRQChannel = RTC_IRQn;
-//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//	NVIC_Init(&NVIC_InitStructure);
-//	//generowanie przerwania przez RTC co 1s
-//	RTC_ITConfig(RTC_IT_SEC, ENABLE);
-//	//odczekanie na zakoñczenie operacji
-//	RTC_WaitForLastTask();
-//
-//	//konfiguracja przerwan pochodz¹cych od RTC Alarm
-//	NVIC_InitStructure.NVIC_IRQChannel = RTCAlarm_IRQn;
-//	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-//	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-//	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-//	NVIC_Init(&NVIC_InitStructure);
-//
 //	//ustwienie dzialania GPIO jako linii EXTI
 //	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource0);
 //	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource1);
@@ -125,13 +65,4 @@
 //	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 //	NVIC_Init(&NVIC_InitStructure);
 //
-//	//uzyskanie czestotliwosci poszczegolnych linii zegara
-//	RCC_GetClocksFreq(&RCC_Clocks);
-//
-//	//ustawienie przerwania SysTick co 100ms
-//	SysTick_Config(RCC_Clocks.SYSCLK_Frequency / 10000);
-//
-//	freq = RCC_Clocks.SYSCLK_Frequency;
 //}
-//
-

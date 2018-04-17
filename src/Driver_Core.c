@@ -6,8 +6,11 @@
  */
 
 #include <Driver_Core.h>
+
 #include <stm32f10x_conf.h>
 #include <stm32f10x_rcc.h>
+
+bool ClkIRQFlag = 0;
 
 /**
   * @brief  Configures clock path and source for System domain. Enables clock for peripherals.
@@ -29,7 +32,7 @@ void RCC_Config(void)
     if(HSEStartUpStatus == SUCCESS)
     {
 
-        RCC_PLLConfig(RCC_PLLSource_HSE_Div2, RCC_PLLMul_4); 	//HSE feed to PLL, no pre-division, 4x multiplier
+        RCC_PLLConfig(RCC_PLLSource_HSE_Div2, RCC_PLLMul_8); 	//HSE feed to PLL, no pre-division, 4x multiplier
 
     	/* SysClk = 32.0 MHz from PLL */
         RCC_HCLKConfig(RCC_SYSCLK_Div1);        	//SYSCLK feeds to HCLK, no change
@@ -46,7 +49,7 @@ void RCC_Config(void)
 
         /* peripheral configuration */
         SysTick_Config(SystemCoreClock/1000);
-        RCC_ADCCLKConfig(RCC_PCLK2_Div4);			// ADC1 Clock = 8Mhz
+        RCC_ADCCLKConfig(RCC_PCLK2_Div8);			// ADC1 Clock = 8Mhz
 
         FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);	//Flash memory delay
         FLASH_SetLatency(FLASH_Latency_1);						//depending of core clock
@@ -76,6 +79,17 @@ void RCC_Config(void)
 		RCC_APB2Periph_SPI1  |
 		RCC_APB2Periph_USART1
 		, ENABLE);
+
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+    /* RTC Second Interrupt */
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+	NVIC_InitStructure.NVIC_IRQChannel = RTC_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	RTC_ITConfig(RTC_IT_SEC, ENABLE);
 }
 
 
@@ -118,11 +132,16 @@ void RTC_Config (void)
 	/* finish RTC domain configuration */
 	RTC_ExitConfigMode();
 
-	/* remove write protection from BKP adresses */
-	//TODO CHECK IF GOOD IDEA!
-    RTC_ClearFlag(RTC_FLAG_SEC);						//Reset SECF flag, RTC->CRL, required to write into protected alarm register
-    while(RTC_GetFlagStatus(RTC_FLAG_SEC) == RESET){};
-    RTC_WaitForLastTask();
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+    /* RTC Second Interrupt */
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+	NVIC_InitStructure.NVIC_IRQChannel = RTC_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_Init(&NVIC_InitStructure);
+	RTC_ITConfig(RTC_IT_SEC, ENABLE);
 }
 
 /**
@@ -137,9 +156,35 @@ void RTC_Resume(void)
 		RCC_APB1Periph_PWR    //Power functions
 		, ENABLE);
 	PWR_BackupAccessCmd(ENABLE);
+}
 
-	//TODO CHECK IF GOOD IDEA!
-    RTC_ClearFlag(RTC_FLAG_SEC);						//Reset SECF flag, RTC->CRL, required to write into protected alarm register
-    while(RTC_GetFlagStatus(RTC_FLAG_SEC) == RESET){};
-    RTC_WaitForLastTask();
+/**
+  * @brief  RTC Seconds IRQ Handler.
+  * used as tikebase for clock state update
+  * @param  None
+  * @retval None
+  */
+void RTC_IRQHandler(void)
+
+{
+	if (RTC_GetITStatus(RTC_IT_SEC) != RESET)
+	{
+		RTC_ClearITPendingBit(RTC_IT_SEC);
+		/* interrupt code begin */
+
+		ClkIRQFlag = TRUE;
+
+		/* interrupt code end */
+	}
+}
+
+
+bool CheckClkFlag()
+{
+	return ClkIRQFlag;
+}
+
+void ResetClkFlag()
+{
+	ClkIRQFlag = FALSE;
 }

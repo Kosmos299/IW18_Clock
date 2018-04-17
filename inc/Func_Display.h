@@ -10,8 +10,11 @@
 
 #include <stdint.h>
 
-void VFD_Set(uint32_t data_written);
-
+void Display_Init(void);
 void Display_Update(void);
+
+
+
+void VFD_Set(uint32_t data_written);
 
 #endif /* FUNC_DISPLAY_H_ */

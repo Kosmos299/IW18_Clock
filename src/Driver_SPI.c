@@ -6,12 +6,12 @@
  */
 
 #include <Driver_SPI.h>
-#include <BSP.h>
 #include "stdio.h"
 #include "stdlib.h"
 #include "stdint.h"
 
 #include "stm32f10x.h"
+#include <stm32f10x_spi.h>
 
 	/*
 	MAX6921AUI+ used in project is basically HV SPI expander with latch and blank function.
@@ -54,47 +54,124 @@
 void SPI1_Config (void)
 {
 	// Pin configuration
-	GPIO_InitTypeDef gpio;
+	GPIO_InitTypeDef gpio_struct;
 
-	GPIO_StructInit(&gpio);
-	gpio.GPIO_Pin = SPI1_SCK|SPI1_MOSI; // SCK, MOSI
-	gpio.GPIO_Mode = GPIO_Mode_AF_PP;
-	gpio.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(SPI1_PORT, &gpio);
+	GPIO_StructInit(&gpio_struct);
+	gpio_struct.GPIO_Pin = SPI1_SCK|SPI1_MOSI; // SCK, MOSI
+	gpio_struct.GPIO_Mode = GPIO_Mode_AF_PP;
+	gpio_struct.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(SPI1_PORT, &gpio_struct);
 
-	gpio.GPIO_Pin = SPI1_LOAD|SPI1_OE; //LOAD, OE
-	gpio.GPIO_Mode = GPIO_Mode_Out_PP;
-	gpio.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(SPI1_PORT, &gpio);
+	gpio_struct.GPIO_Pin = SPI1_LOAD|SPI1_OE; //LOAD, OE
+	gpio_struct.GPIO_Mode = GPIO_Mode_Out_PP;
+	gpio_struct.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(SPI1_PORT, &gpio_struct);
 
 	//SPI engine configuration
-	SPI_InitTypeDef spi;
-	spi.SPI_Mode = SPI_Mode_Master;
-	spi.SPI_Direction = SPI_Direction_1Line_Tx;
-	spi.SPI_NSS = SPI_NSS_Soft;
-	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
-	SPI_Init(SPI1, &spi);
+	SPI_InitTypeDef spi_struct;
+	SPI_I2S_DeInit(SPI1);
+
+	spi_struct.SPI_Direction = SPI_Direction_1Line_Tx;	//SPI_Direction_2Lines_FullDuplex;
+	spi_struct.SPI_Mode = SPI_Mode_Master;
+	spi_struct.SPI_DataSize = SPI_DataSize_16b;
+	spi_struct.SPI_CPOL = SPI_CPOL_Low; // clock is low while idling
+	spi_struct.SPI_CPHA = SPI_CPHA_1Edge; // data is recognized on first edge of clk
+	spi_struct.SPI_NSS = SPI_NSS_Soft;
+	spi_struct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	spi_struct.SPI_FirstBit = SPI_FirstBit_MSB; //SPI_FirstBit_LSB;
+	spi_struct.SPI_CRCPolynomial = 7;
+
+	SPI_Init(SPI1, &spi_struct);
+
+	// Initialize the FIFO threshold
+	//SPI_RxFIFOThresholdConfig(SPI1, SPI_RxFIFOThreshold_QF);
+
+	// Init DMA
+	//SPI_InitDMA();
+
+	// Enable SPI
 	SPI_Cmd(SPI1, ENABLE);
+    //SPI_CalculateCRC(SPI1, DISABLE);
+    //SPI_SSOutputCmd(SPI1, DISABLE);
+
+    //SPI_I2S_ITConfig(SPI1, SPI_I2S_IT_RXNE, ENABLE);
+   // SPI_I2S_ITConfig(SPI1, SPI_I2S_IT_TXE, ENABLE);
 
 }
 
 /**
-  * @brief  SPI1 Send/Receive
-  * Test send/receive spi routine.
+  * @brief  SPI2 Config
+  * Configures SPI2, interface routed onto external connector
+  * Configures pins required, with hardware NSS
   * @param  None
   * @retval None
   */
-
-/*
-uint8_t spi_sendrecv(uint8_t byte)
+void SPI2_Config (void)
 {
- // poczekaj az bufor nadawczy bedzie wolny
- while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
- SPI_I2S_SendData(SPI1, byte);
+	// Pin configuration
+	GPIO_InitTypeDef gpio_struct;
 
- // poczekaj na dane w buforze odbiorczym
- while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
- return SPI_I2S_ReceiveData(SPI1);
+	GPIO_StructInit(&gpio_struct);
+	gpio_struct.GPIO_Pin = EXT_SCK|EXT_MOSI; // SCK, MOSI
+	gpio_struct.GPIO_Mode = GPIO_Mode_AF_PP;
+	gpio_struct.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(EXT_SPI_PORT, &gpio_struct);
+
+	gpio_struct.GPIO_Pin = EXT_MISO|EXT_CS; //MISO, NSS
+	gpio_struct.GPIO_Mode = GPIO_Mode_Out_PP;
+	gpio_struct.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(EXT_SPI_PORT, &gpio_struct);
+
+	//SPI engine configuration
+	SPI_InitTypeDef spi_struct;
+	SPI_I2S_DeInit(SPI2);
+
+	spi_struct.SPI_Direction = SPI_Direction_1Line_Tx;	//SPI_Direction_2Lines_FullDuplex;
+	spi_struct.SPI_Mode = SPI_Mode_Master;
+	spi_struct.SPI_DataSize = SPI_DataSize_16b;
+	spi_struct.SPI_CPOL = SPI_CPOL_Low; // clock is low while idling
+	spi_struct.SPI_CPHA = SPI_CPHA_1Edge; // data is recognized on first edge of clk
+	spi_struct.SPI_NSS = SPI_NSS_Hard;
+	spi_struct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	spi_struct.SPI_FirstBit = SPI_FirstBit_MSB; //SPI_FirstBit_LSB;
+	spi_struct.SPI_CRCPolynomial = 7;
+
+	SPI_Init(SPI2, &spi_struct);
+
+	// Initialize the FIFO threshold
+	//SPI_RxFIFOThresholdConfig(SPI1, SPI_RxFIFOThreshold_QF);
+
+	// Init DMA
+	//SPI_InitDMA();
+
+	// Enable SPI
+	SPI_Cmd(SPI2, ENABLE);
+    //SPI_CalculateCRC(SPI1, DISABLE);
+    //SPI_SSOutputCmd(SPI1, DISABLE);
+
+    //SPI_I2S_ITConfig(SPI1, SPI_I2S_IT_RXNE, ENABLE);
+   // SPI_I2S_ITConfig(SPI1, SPI_I2S_IT_TXE, ENABLE);
+
 }
- */
+
+
+/**
+  * @brief  SPI1 Send
+  * Test send 16bits over SPI1 routine.
+  * @param  None
+  * @retval None
+  */
+void SPI_Send16(SPI_TypeDef* SPIx, uint16_t data_written)
+{
+  uint32_t timeout = 0xFFFFFF;
+
+  timeout = 0xFFFFFF;
+  while (SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_TXE ) == RESET)
+  {
+    timeout--;
+    if (!timeout)
+      break;
+  }
+  SPI_I2S_SendData(SPIx, data_written);
+}
 
