@@ -1,40 +1,46 @@
-//===========================================================================
-// Project name:  MicorTIG - Master
-//===========================================================================
-//  Functional description:
-/// \file   types.h
-/// \brief  Typendefinition nach Lorch ECS
-///         Type definition as in Lorch Embedded Coding Sstandard defined
-//===========================================================================
-//  $Author: wrn $
-//  $LastChangedDate: 2016-04-13 14:57:58 +0200 (Mi, 13 Apr 2016) $
-//  $Rev: 10 $
-//===========================================================================
-//
-//  $Header: $
-//  Version information:
-//  $Log: $
-//===========================================================================
+/*
+ * IW18_BSP.h
+ *
+ *  Created on: 29.10.2017
+ *      Author: Dawid Adamik
+ */
 
-#ifndef  __LCS_TYPES_H__
-#define  __LCS_TYPES_H__
+#ifndef BSP_H_
+#define BSP_H_
 
-#include <stdint.h>
+#include "stm32f10x.h"
 
-typedef unsigned char uchar; //8bit
-typedef signed char schar;
-typedef signed short sint;//16bit
-typedef signed int slong;//32bit
-typedef unsigned long long uextended;
-typedef signed long long sextended;
+/***** PORT A *****/
 
-#define bool _Bool
-enum
-{
-  FALSE = 0,
-  TRUE
-};
+#define JTMS_A 			GPIO_Pin_13
+#define JTCK_A 			GPIO_Pin_14
+#define JTDI_A 			GPIO_Pin_15
+#define JTDO_B 			GPIO_Pin_3
+/***** PORT B *****/
+
+#define BUZZ_PORT 			GPIOB
+#define BUZZ_PIN 			GPIO_Pin_8
+
+#define BTN_PORT GPIOA
+#define A_BTN 			GPIO_Pin_11
+#define B_BTN 			GPIO_Pin_12
+
+#define ENC_PORT GPIOB
+#define ENC_BTN 		GPIO_Pin_9
+#define ENC_A 			GPIO_Pin_4
+#define ENC_B 			GPIO_Pin_5
+
+#define EXTA_A 			GPIOA
+#define EXTA_B 			GPIOB
+#define EXTA_C 			GPIOC
+#define EXT_PA0_WKUP 	GPIO_Pin_0
+#define EXT_PA3 		GPIO_Pin_3
+#define EXT_PA8 		GPIO_Pin_8
+#define EXT_PB0 		GPIO_Pin_0
+#define EXT_PB11 		GPIO_Pin_11
+#define EXT_PC13 		GPIO_Pin_13
+
 
 void delay(int time);
 
-#endif	/*__LCS_TYPES_H__*/
+#endif /* BSP_H_ */

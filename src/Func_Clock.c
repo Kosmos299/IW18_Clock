@@ -215,6 +215,7 @@ void Clock_Update()
 	  RTC_WaitForLastTask();
 	  }
 
+	  //TODO: use it to implement multi alarm function - to check if alarm
 	  if (TimeVar%3600 == 0)
 	  {
 		  Minute_Flag = TRUE;

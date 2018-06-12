@@ -1,5 +1,7 @@
 /*
- * Display_Driver.h
+ * Driver_SPI.h
+ *
+ * Contains SPI initializes, and functions required to send data via SPI
  *
  *  Created on: 03.11.2017
  *      Author: Dawid Adamik
@@ -26,5 +28,7 @@
 void SPI1_Config (void);
 void SPI2_Config (void);
 void SPI_Send16(SPI_TypeDef* SPIx, uint16_t data_written);
+
+void VFD_Set(uint32_t data_written);
 
 #endif /* DRIVER_SPI_H_ */

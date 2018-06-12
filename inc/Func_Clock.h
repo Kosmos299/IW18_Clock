@@ -13,7 +13,7 @@
 #include "stm32f10x_rtc.h"
 
 #include <stdio.h>
-#include <Utilities.h>
+#include <Types.h>
 
 #define SECONDS_PER_DAY 86400
 #define	LIVE_REG 0xA5A5
@@ -26,12 +26,14 @@ void Time_Set(uint32_t Tmp_HH, uint32_t Tmp_MM, uint32_t Tmp_SS);
 void Time_Get(uint8_t* Tmp_HH, uint8_t* Tmp_MM, uint8_t* Tmp_SS);
 void Date_Set(uint8_t Tmp_DD, uint8_t Tmp_MM, uint16_t Tmp_YY);
 void Date_Get(uint8_t* Tmp_DD, uint8_t* Tmp_MM, uint16_t* Tmp_YY);
-void Alarm_Set(uint32_t Tmp_HH, uint32_t Tmp_MM, uint32_t Tmp_SS);
 
 bool IsLeap(uint16_t TYY);
 
 void Date_Increment(void);
 void Clock_Update(void);
+
+// untested/unused
+void Alarm_Set(uint32_t Tmp_HH, uint32_t Tmp_MM, uint32_t Tmp_SS);
 
 //debug functions
 void Debug_Time_Display(void);

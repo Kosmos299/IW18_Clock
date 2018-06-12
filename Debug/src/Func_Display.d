@@ -28,9 +28,7 @@ src/Func_Display.o: ../src/Func_Display.c \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_tim.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_usart.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_wwdg.h \
- D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/misc.h \
- D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_Timer.h \
- D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Utilities.h
+ D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/misc.h
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Func_Display.h:
 
@@ -91,7 +89,3 @@ D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_wwdg.h:
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/misc.h:
-
-D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_Timer.h:
-
-D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Utilities.h:

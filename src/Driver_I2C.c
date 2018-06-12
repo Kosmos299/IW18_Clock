@@ -1,6 +1,5 @@
 #include <Driver_I2C.h>
 
-#include <BSP.h>
 #include <Utilities.h>
 #include "stdio.h"
 #include "stdlib.h"

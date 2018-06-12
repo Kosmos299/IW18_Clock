@@ -9,7 +9,7 @@
 #define DRIVER_CORE_H_
 
 #include <stdint.h>
-#include <Utilities.h>
+#include <Types.h>
 
 void RCC_Config(void);
 void RTC_Config (void);

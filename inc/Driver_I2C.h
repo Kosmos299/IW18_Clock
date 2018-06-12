@@ -1,5 +1,5 @@
-#ifndef Driver_Measrements_
-#define Driver_Measrements_
+#ifndef Driver_I2C_
+#define Driver_I2C_
 
 #include <stdint.h>
 

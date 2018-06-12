@@ -12,9 +12,6 @@
 
 void Display_Init(void);
 void Display_Update(void);
-
-
-
-void VFD_Set(uint32_t data_written);
+void Display_WriteBufferSimple(uint8_t position, uint8_t symbol);
 
 #endif /* FUNC_DISPLAY_H_ */

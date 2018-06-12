@@ -4,13 +4,10 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/Driver_ADC.c \
 ../src/Driver_Core.c \
-../src/Driver_GPIO.c \
 ../src/Driver_I2C.c \
 ../src/Driver_SPI.c \
 ../src/Driver_Terminal.c \
-../src/Driver_Timer.c \
 ../src/Func_Boost.c \
 ../src/Func_Clock.c \
 ../src/Func_Display.c \
@@ -22,13 +19,10 @@ C_SRCS += \
 ../src/system_stm32f10x.c 
 
 OBJS += \
-./src/Driver_ADC.o \
 ./src/Driver_Core.o \
-./src/Driver_GPIO.o \
 ./src/Driver_I2C.o \
 ./src/Driver_SPI.o \
 ./src/Driver_Terminal.o \
-./src/Driver_Timer.o \
 ./src/Func_Boost.o \
 ./src/Func_Clock.o \
 ./src/Func_Display.o \
@@ -40,13 +34,10 @@ OBJS += \
 ./src/system_stm32f10x.o 
 
 C_DEPS += \
-./src/Driver_ADC.d \
 ./src/Driver_Core.d \
-./src/Driver_GPIO.d \
 ./src/Driver_I2C.d \
 ./src/Driver_SPI.d \
 ./src/Driver_Terminal.d \
-./src/Driver_Timer.d \
 ./src/Func_Boost.d \
 ./src/Func_Clock.d \
 ./src/Func_Display.d \

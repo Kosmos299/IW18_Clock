@@ -4,12 +4,12 @@
 
 /*** Include *****************************************************************/
 #include <stm32f10x.h>
-#include <Utilities.h>
+#include <Types.h>
 
 /*** Preprocessor definitions ************************************************/
 #define EXT_USART1_PORT 	GPIOA
-#define EXT_USART1_TX 	GPIO_Pin_9
-#define EXT_USART1_RX 	GPIO_Pin_10
+#define EXT_USART1_TX 		GPIO_Pin_9
+#define EXT_USART1_RX 		GPIO_Pin_10
 
 /// Terminal port speed.
 #define TERMINAL_PORT_BAUDRATE  56000

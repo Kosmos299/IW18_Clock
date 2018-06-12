@@ -1,41 +1,36 @@
 /*
- * Utility.c
+ * Func_System.c
  *
  *  Created on: 29.10.2017
  *      Author: Dawid Adamik
  */
-#include <BSP.h>  	//Board support package, pin definitions
-#include <Driver_GPIO.h>
+#include <Func_System.h>
+
 #include <Driver_Core.h>
 #include <Driver_I2C.h>
 #include <Driver_Terminal.h>
+
+#include <Func_Clock.h>
+#include <Func_Display.h>
+#include <Func_System.h>
+#include <Func_Boost.h>
+
+#include <Types.h>
+
 #include "stm32f10x.h"
 #include "system_stm32f10x.h"
 
-//===========================================================================
-//  Sub structure  "mainState"
-//  description:  data for/of Main machine state
-//===========================================================================
-typedef enum   // Main machine state
-{
-  MSM_STARTUP = 0,
-  MSM_NORMAL,
-  MSM_SHUTDOWN,
-  MSM_ERROR,
-  MSM_TEST,
-  MSM_STANDBY
-} mState;
+#include <Driver_SPI.h>
 
 volatile uint32_t timer_ms = 0;
-mState SystemState = MSM_STARTUP;
 
-void System_Init()
-{
-	RCC_Config();				// Clock path config
-	GPIO_Config();				// GPIO/BSP config
-	TERMINAL_Init();			// Debug terminal 56000 baud
-	//I2C1_Config();			//Temperature and humidity sensor on I2C bus
-}
+mState SystemState = MSM_STARTUP;
+sSystimer stTimers;
+
+bool DispIRQFlag = FALSE;
+uint16_t TimeBaseCnt = 0;
+
+bool TEMPFLAG = FALSE;
 
 void SysTick_Handler()
 {
@@ -46,175 +41,275 @@ void SysTick_Handler()
 
 void delay_ms(int time)
 {
-    timer_ms = time;
+    timer_ms = 32000*time;
     while(timer_ms > 0){};
 }
 
-////////////////////////////////
-void State_Machine()
+/**
+  * @brief  Initializes core system functions - quartz clock, status leds, uart terminal.
+  * Starts up state machine.
+  * Configures TIM4 as timebase generator. generates 200us interrupt
+  * @param  None
+  * @retval None
+  */
+void System_Init()
 {
+	RCC_Config();				// Clock path config
+	TERMINAL_Init();			// Debug terminal 56000 baud
+
+	GPIO_InitTypeDef gpio;
+	TIM_TimeBaseInitTypeDef TIM_TimeBase_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+	GPIO_StructInit(&gpio);
+	gpio.GPIO_Pin = ERR_LED|STAT_LED;
+	gpio.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(LED_PORT, &gpio);
+
+	/* reset all timers*/
+	uint8_t i = 0;
+
+	for (i = 0; i < CNT_100MS; i++)
+	{
+	  stTimers.T100[i] = 0;
+	}
+	for (i = 0; i < CNT_10MS; i++)
+	{
+	  stTimers.T10[i] = 0;
+	}
+	for (i = 0; i < CNT_1MS; i++)
+	{
+	  stTimers.T1[i] = 0;
+	}
+	stTimers.T02MS = 5;
+
+	TIM_TimeBase_InitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+	TIM_TimeBase_InitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+	TIM_TimeBase_InitStructure.TIM_Prescaler = 32-1; 	// t = 1us per count
+	TIM_TimeBase_InitStructure.TIM_Period = 200-1;		// T = 200us
+	TIM_TimeBaseInit(TIM4, &TIM_TimeBase_InitStructure);
+
+	TIM_Cmd(TIM4, ENABLE);
+
+	/* TIM4 Update Interrupt */
+	NVIC_InitStructure.NVIC_IRQChannel = TIM4_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
+	NVIC_Init(&NVIC_InitStructure);
+	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
+
+	SystemState = MSM_STARTUP;
+}
+
+/**
+  * @brief  TIM4 Update IRQ Handler.
+  * TIM4 is used as timebase for process timers
+  * @param  None
+  * @retval None
+  */
+void TIM4_IRQHandler()
+{
+	if (TIM_GetITStatus(TIM4, TIM_IT_Update) == SET) {
+		/* interrupt code begin */
+
+		/* MECHANISM 1 - flag for display and PID */
+		TimeBaseCnt++;
+		if (TimeBaseCnt == 10) //10 counts = 2ms
+		{
+			TimeBaseCnt = 0;
+			DispIRQFlag = TRUE; //2ms [500Hz] display refresh flag
+		}
+
+		//VBUS_ExecuteVoltageLoop(); 	//Execute PID, full speed, 5kHz
+		/* MECHANISM 1 END */
+
+		/* MECHANISM 2 - composite timers for system process */
+		uint8_t i = 0;
+		stTimers.T02MS--;
+
+		if (!(stTimers.T02MS)) //timebase divisor, 200us =>1ms
+		{
+			stTimers.T02MS = 5;
+
+			// decrement 1 ms timers
+			for (i = 0; i < CNT_1MS; i++)
+			{
+				if (stTimers.T1[i])
+				{
+					stTimers.T1[i]--;
+				}
+			}
+
+			//Check if 10ms already has passed
+			if (!(stTimers.T1[T1_10MS]))
+			{
+				stTimers.T1[T1_10MS] = 10;
+
+				// decrement 10 ms timers
+				for (i = 0; i < CNT_10MS; i++)
+				{
+					if (stTimers.T10[i])
+					{
+						stTimers.T10[i]--;
+					}
+				}
+
+				//Check if 10 * 10ms = 100ms already has passed
+				if (!(stTimers.T10[T10_100MS]))
+				{
+					stTimers.T10[T10_100MS] = 10;
+
+					// decrement 100 ms timers
+					for (i = 0; i < CNT_100MS; i++)
+					{
+						if (stTimers.T100[i])
+						{
+							stTimers.T100[i]--;
+						}
+					}
+
+					//Check if 10 * 10 * 10ms = 1s already has passed
+					if (!(stTimers.T100[T100_1S]))
+					{
+
+						stTimers.T100[T100_1S] = 10;
+						// decrement 1s timers
+						for (i = 0; i < CNT_1000MS; i++)
+						{
+							if (stTimers.T1000[i])
+							{
+								stTimers.T1000[i]--;
+							}
+
+						}
+					} //End Update 1s
+				} //End Update 100ms
+			} //End Update 10ms
+			//
+		}
+		/* MECHANISM 2 END */
+
+		TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
+		/* interrupt code end */
+	}
+}
+
+bool CheckDispFlag()
+{
+	return DispIRQFlag;
+}
+
+void ResetDispFlag()
+{
+	DispIRQFlag = FALSE;
+}
+
+/**
+  * @brief  Toggles state of selected led.
+  * @param  None
+  * @retval None
+  */
+void LED_Toggle(uint16_t led)
+{
+if (GPIO_ReadOutputDataBit(LED_PORT, led))
+	GPIO_ResetBits(LED_PORT, led);
+else
+	GPIO_SetBits(LED_PORT, led);
+}
+////////////////////////////////
+void SystemIO_Handler()
+{
+	//Status LEDs
+	if (SystemState == MSM_ERROR)
+	{
+    	GPIO_ResetBits(LED_PORT, STAT_LED);
+        if(!stTimers.T100[T100_ERRORLED])
+        {
+      	  stTimers.T100[T100_ERRORLED] = 5;
+      	  LED_Toggle(ERR_LED);
+        }
+	}
+	else
+	{
+		GPIO_ResetBits(LED_PORT, ERR_LED);
+        if(!stTimers.T100[T100_STATUSLED])
+        {
+      	  stTimers.T100[T100_STATUSLED] = 10;
+      	  LED_Toggle(STAT_LED);
+        }
+	}
+	//Keypad
+
+	//Alarm
+}
+////////////////////////////////
+void StateMachine_Handler()
+{
+uint8_t i = 0;
   switch (SystemState)
   {
     case MSM_STARTUP:
-      /*if(!stTimers.T1S[T1S_DisplayTest])
-      {
-        Display_SetLEDand7Seg(FALSE);
-        SystemState = MSM_NORMAL;
-        Menu_Init();
-        MSM_StartUpDone = TRUE;
-      }
-      else
-      {
-        Display_SetLEDand7Seg(TRUE);
-        //OS-Versionen der Komponenten anfragen
-        if (aucData[0] == 0)
-        {
-          aucData[0] = GID_MASTER;
-          aucData[1] = CO_GET_OSVERSION;
-          CAN_SendStdMsg(CAN_MSG_0x400, 8, aucData, REGULAR);
-          aucData[0] = GID_PROZESS;
-          aucData[1] = CO_GET_OSVERSION;
-          CAN_SendStdMsg(CAN_MSG_0x400, 8, aucData, REGULAR);
-          aucData[0] = GID_PRIMARY;
-          aucData[1] = CO_GET_OSVERSION;
-          CAN_SendStdMsg(CAN_MSG_0x400, 8, aucData, REGULAR);
-        }
-      }*/
-    break;
+    	/* clock startup */
+    	Display_Init();
+    	VBUS_BoostInit();
 
-    case MSM_NORMAL:
-    /*if(!stTimers.T10[T10_REFRESHDISPLAY])
-    {
-      stTimers.T10[T10_REFRESHDISPLAY] = 4;
-      //Eingabe prüfen & MenuPoint setzen
-      Menu_Steuerung();
-      //MenuPoint prüfen / ProcessBits setzen
-      Menu_BitControl();
-      //Darstellung der Nebenparameter + HauptSollStrom
-      Menu_Show_Parameter();
-      //Werte für CAN zur Verfügung stellen
-      Menu_to_CAN();
-    }*/
+    	for (i=0;i<9;i++)
+    	{
+    	Display_WriteBufferSimple(i, 9);
+    	}
+
+    	Clock_Init();
+    	SystemState = MSM_CLK_DISP_HRS;
+    	TERMINAL("Startup complete.\n\r");
+
     break;
 
     case MSM_SHUTDOWN:
-//        startup_Shutdown();  // Run shutdown procedure
-//  //        if(GData.SystemStat.ulMainStat & MSM_STANDBY)
-//  //        {
-//  //          MStatus = eMSTANDBY;
-//  //        }
-    	SystemState = MSM_STANDBY; //Vorerst mal so KLA
+    	// Run shutdown procedure
+    	//SystemState = MSM_STANDBY;
     break;
 
     case MSM_ERROR:
-     /* if (GData.ProcessData.ulProcessBits & WC_Standby) //CheckSysStatus(MS_SHUTDOWN)
-      {
-    	  SystemState = MSM_SHUTDOWN;
-      }
-      // Return to normal operation if there are no errors anymore / valid error
-      else if (!GData.CANRegister.uiErrorBits)
-      {
-        if (MSM_StartUpDone)
-        {
-        	SystemState = MSM_NORMAL;
-        }
-        else
-        {
-        	SystemState = MSM_STARTUP; // Startup was incomplete
-        }
-        ErrorSwitchT1S = TRUE; //Init for next error / hint
-      }
-      else
-      {
-        #define SubError   ((GData.CANRegister.uiErrorBits & 0x7F00) >>  8)
-        #define MainError  ((GData.CANRegister.uiErrorBits & 0x00FF) >>  0)
 
-        //Status-Error LED Handling
-        if (GData.CANRegister.uiErrorBits & 0x8000) //Error
-        {
-          if (GData.BFRegister.ulKeyWord & (E_Menu | E_Takt2_4 | E_Pulsen))
-          {
-            ErrorSwitchT1S = TRUE;
-            stTimers.T1S[T1S_SwitchMenu] = 2; //2 Sek
-            //Wechsel zu SubError //10 = '-'
-            Display_WriteText((10 << 10) + ((SubError / 10) << 5) + (SubError % 10), FALSE);
-          }
-          else if (!stTimers.T1S[T1S_SwitchMenu])
-          {
-            //Zeige MainError
-            if (ErrorSwitchT1S) //13 = 'E'
-            {
-              LED_Set(LED_Temp, ON, NORM);
-              Display_WriteText((13 << 10) + ((MainError / 10) << 5) + (MainError % 10), FALSE);
-            }
-            ErrorSwitchT1S = FALSE;
-          }
-        }
-        else //Hint
-        {
-          if (GData.BFRegister.ulKeyWord == E_Enc_OK) //Exit Hint
-          {
-            GData.ProcessData.ulProcessBits |= UI_Hinweis;
-          }
-
-          if (GData.BFRegister.ulKeyWord & (E_Menu | E_Takt2_4 | E_Pulsen))
-          {
-            ErrorSwitchT1S = TRUE;
-            stTimers.T1S[T1S_SwitchMenu] = 2; //2 Sek
-            //Wechsel zu SubHint //10 = '-'
-            Display_WriteText((10 << 10) + ((SubError / 10) << 5) + (SubError % 10), FALSE);
-          }
-          else if (!stTimers.T1S[T1S_SwitchMenu])
-          {
-            //Zeige MainHint
-            if (ErrorSwitchT1S) //24 = 'H'
-            {
-              LED_Set(LED_Temp, OFF, NORM);
-              Display_WriteText((24 << 10) + ((MainError / 10) << 5) + (MainError % 10), FALSE);
-            }
-            ErrorSwitchT1S = FALSE;
-          }
-        }
-        GData.BFRegister.ulKeyWord = 0;
-      }*/
     break;
 
-    case MSM_TEST:
-    /*  if(!stTimers.T10[T10_REFRESHDISPLAY])
-      {
-        stTimers.T10[T10_REFRESHDISPLAY] = 4;
-        if (BfPoint < 10)
-          BfPoint = BedienfeldTest(BfPoint);
-        else
-        {
-          BfPoint = 0;
-          CANOutputBfTest(TRUE);
-          Display_SetLEDand7Seg(FALSE);
-          SystemState = MSM_NORMAL;
-          Menu_Init();
-        }
-      }*/
+    case MSM_CLK_DISP_TEST:
+
     break;
 
-    case MSM_STANDBY:
-     /* if(!stTimers.T10[T10_REFRESHDISPLAY])
-      {
-        stTimers.T10[T10_REFRESHDISPLAY] = 4;
-        if (GData.BFRegister.ulKeyWord == E_Standby)
+    case MSM_CLK_DISP_HRS:
+
+        if(!stTimers.T1000[T1000_TESTTIMER])
         {
-          GData.ProcessData.ulProcessBits &= ~WC_Standby;
-          SystemState = MSM_STARTUP;
-          //stTimers.T1S[T1S_DisplayTest] = 20; //DisplayTest Zeit
-          stTimers.T1S[T1S_DisplayTest] = 2; //2 Sek 170921 GTC nach Korrektur Systimer
+      	  stTimers.T1000[T1000_TESTTIMER] = 2;
+
+      	  if (TEMPFLAG == TRUE)
+      	  {
+          	  VFD_Set(0b1111111111110000);
+          	  TEMPFLAG = FALSE;
+      	  }
+      	  else
+       	  {
+          	  VFD_Set(0b1111111111111111);
+          	  TEMPFLAG = TRUE;
+      	  }
+
         }
-        GData.BFRegister.ulKeyWord = 0;
-      }
-      else
-      {
-        Display_SetLEDand7Seg(FALSE);
-        GData.ProcessData.ulProcessBits |= WC_Standby;
-      }*/
+
+
+    break;
+
+    case MSM_CLK_DISP_DATE:
+
+    break;
+
+    case MSM_CLK_DISP_TEMP:
+
+    break;
+
+    case MSM_CLK_SET:
+
     break;
   }
 }
-////////////////////////////////
