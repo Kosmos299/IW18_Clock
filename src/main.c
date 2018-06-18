@@ -23,7 +23,7 @@
 
 #define RELEASE_NUMBER_MAJOR 0
 #define RELEASE_NUMBER_MINOR1 1
-#define RELEASE_NUMBER_MINOR2 4
+#define RELEASE_NUMBER_MINOR2 6
 #define RELEASE_NUMBER_BUILD1 0
 #define RELEASE_NUMBER_BUILD2 0
 
@@ -56,16 +56,15 @@ while (1)
 	StateMachine_Handler();
 	SystemIO_Handler();
 
-	/* 2ms Display IRQ routines *********************************/
+	/* 2ms Display IRQ routines ************************/
 	if (CheckDispFlag()==1)
 	{
-		//TODO: enable
-		//Display_Update();
+		Display_Update();
 		ResetDispFlag();
 	}
-	/* 2ms Display IRQ routines end ******/
+	/* 2ms Display IRQ routines end ********************/
 
-	/* 1s RTC IRQ routines ******************************/
+	/* 1s RTC IRQ routines *****************************/
 	if (CheckClkFlag()==1)
 	{
 		#ifdef DEBUG_BLINK
@@ -77,7 +76,7 @@ while (1)
 		Clock_Update();
 		ResetClkFlag();
 	}
-	/* 1s IRQ routines end *******/
+	/* 1s IRQ routines end *****************************/
 
 /*** infinite loop end********************************************************/
 }

@@ -1,5 +1,6 @@
 src/Func_Display.o: ../src/Func_Display.c \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Func_Display.h \
+ D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Types.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_SPI.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/stm32f10x_spi.h \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/CMSIS/device/stm32f10x.h \
@@ -31,6 +32,8 @@ src/Func_Display.o: ../src/Func_Display.c \
  D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/StdPeriph_Driver/inc/misc.h
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Func_Display.h:
+
+D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Types.h:
 
 D:/My\ Designs/IW18_Clock/software/Githubwc/trunk/inc/Driver_SPI.h:
 

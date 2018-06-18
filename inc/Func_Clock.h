@@ -31,6 +31,8 @@ bool IsLeap(uint16_t TYY);
 
 void Date_Increment(void);
 void Clock_Update(void);
+bool GetSecondsFlag(void);
+bool GetMinutesFlag(void);
 
 // untested/unused
 void Alarm_Set(uint32_t Tmp_HH, uint32_t Tmp_MM, uint32_t Tmp_SS);

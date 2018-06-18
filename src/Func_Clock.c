@@ -17,7 +17,8 @@ uint8_t Month_Len[12] =
     31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
   };
 
-bool Minute_Flag = 0;
+bool Minute_Flag = FALSE;
+bool Second_Flag = FALSE;
 
 /**
   * @brief  Starts clock functionality. If Vbat has been lost, fully configures LSE.
@@ -215,7 +216,16 @@ void Clock_Update()
 	  RTC_WaitForLastTask();
 	  }
 
-	  //TODO: use it to implement multi alarm function - to check if alarm
+	  /* flag used for second blink dot */
+	  if (Second_Flag == FALSE)
+	  {
+		  Second_Flag = TRUE;
+	  }
+	  else
+	  {
+		  Second_Flag = FALSE;
+	  }
+
 	  if (TimeVar%3600 == 0)
 	  {
 		  Minute_Flag = TRUE;
@@ -226,6 +236,17 @@ void Clock_Update()
 	  }
 
 }
+
+bool GetSecondsFlag()
+{
+	return Second_Flag;
+}
+
+bool GetMinutesFlag()
+{
+	return Minute_Flag;
+}
+
 
 ////////////////////////////
 // UNUSED, UNTESTED FUNCTIONS

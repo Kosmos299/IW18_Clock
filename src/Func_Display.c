@@ -8,56 +8,69 @@
 #include <Func_Display.h>
 #include <Driver_SPI.h>
 
-// output mask for coded digits
-const uint32_t Symbols [13] =
+// output mask for coded symbols
+const uint32_t Symbols [14] =
 {
-		0x0003B020,	// 0
-		0x00012000,	// 1
-		0x0002E020,	// 2
-		0x00036020,	// 3
-		0x00017000,	// 4
-		0x00035020,	// 5
-		0x0003D020,	// 6
-		0x00012020,	// 7
-		0x0003F020,	// 8
-		0x00037020,	// 9
+		0x003B0200,	// 0
+		0x00120000,	// 1
+		0x002E0200,	// 2
+		0x00360200,	// 3
+		0x00170000,	// 4
+		0x00350200,	// 5
+		0x003D0200,	// 6
+		0x00120200,	// 7
+		0x003F0200,	// 8
+		0x00370200,	// 9
 		0x00000000,	// blank
-		0x00007020,	// deg
-		0x00029020	// C
+		0x00070200,	// deg
+		0x00290200,	// C
+		0x007C0200	// testchar
 		//add next
 };
 
 // output mask for sequential anodes
 const uint32_t Grids [9] =
 {
-		0x00000080,	// 1
-		0x00080000,	// 2
+		0x00000800,	// 0
+		0x00800000,	// 1
+		0x00001000,	// 2
 		0x00000100,	// 3
-		0x00000010,	// 4
-		0x00000200,	// 5
-		0x00000008,	// 6
-		0x00000004,	// 7
-		0x00000002,	// 8
-		0x00000040	// 9
+		0x00002000,	// 4
+		0x00000080,	// 5
+		0x00000040,	// 6
+		0x00000020,	// 7
+		0x00000400	// 8
 };
 
-//
-uint8_t DrawBuffer [9] =
+//buffer for drawing
+VFDDigit DrawBuffer [9] =
 {
-		0x00, //1
-		0x00, //2
-		0x00, //3
-		0x00, //4
-		0x00, //5
-		0x00, //6
-		0x00, //7
-		0x00, //8
-		0x00  //9
+		10, FALSE,	//0
+		10, FALSE,	//1
+		10, FALSE,	//2
+		10, FALSE,	//3
+		10, FALSE,	//4
+		10, FALSE,	//5
+		10, FALSE,	//6
+		10, FALSE,	//7
+		10, FALSE	//8
 };
 
-//#define DEBUG_SPEW
+//display buffer
+VFDDigit OpBuffer [9] =
+{
+		10, FALSE,	//0
+		10, FALSE,	//1
+		10, FALSE,	//2
+		10, FALSE,	//3
+		10, FALSE,	//4
+		10, FALSE,	//5
+		10, FALSE,	//6
+		10, FALSE,	//7
+		10, FALSE	//8
+};
 
-#define DECPOINT 0x00040000
+#define DECPOINT 0x00400000
 
 uint8_t SelectedDigit = 0;
 
@@ -74,58 +87,56 @@ void Display_Init()
 }
 
 /*
- * @brief
- * @param
- * @retval
+ * @brief display refresh routine
+ * cyclicaly refreshes eanch digit, claculates character mapping etc.
+ * @param none
+ * @retval none
  */
 void Display_Update()
 {
 	uint32_t disp_content = 0;
-	uint8_t OpBuffer [9] =
-	{
-			0x00, //1
-			0x00, //2
-			0x00, //3
-			0x00, //4
-			0x00, //5
-			0x00, //6
-			0x00, //7
-			0x00, //8
-			0x00  //9
-	};
-
+	uint32_t dotstat = 0;
 	uint8_t i = 0;
-	/* copy DrawBuffer to prevent change in operation */
-	for(i = 0; i < 10; i++) {
-		OpBuffer[i] = DrawBuffer[i];
-	}
 
-	/* skip to next digit */
-    if (SelectedDigit==9)
+	/* wrap around display if needed */
+	/* copy DrawBuffer once per display cycle to prevent change while in operation */
+	if (SelectedDigit==9)
     {
     	SelectedDigit=0;
-    }
-    else
-    {
-    	SelectedDigit++;
+    	for(i = 0; i < 9; i++) {
+    		OpBuffer[i].Symbol = DrawBuffer[i].Symbol;
+    		OpBuffer[i].Dot = DrawBuffer[i].Dot;
+    	}
     }
 
-    /* prepare data */
-    //TODO: debug sending dataframe, maybe problem is here: "+" instead of "&"
-    disp_content = Symbols[OpBuffer[SelectedDigit]] + Grids[SelectedDigit];
+    /* prepare driver payload data */
+	if (OpBuffer[SelectedDigit].Dot == TRUE)
+	{
+		dotstat = DECPOINT;
+	}
+	else
+	{
+		dotstat = 0x00000000;
+	}
 
+    disp_content = Symbols[OpBuffer[SelectedDigit].Symbol] + Grids[SelectedDigit] + dotstat;
     /* push data to controller */
     VFD_Set(disp_content);
+    /* skip to next digit */
+	SelectedDigit++;
 }
 
 /*
- * @brief
- * @param
+ * @brief Simple write to draw buffer
+ * @param uint8_t position location to write - digit from rigt to left (0 to 8)
+ * @param uint8_t symbol - symbol number form symbol map
+ * @param bool dot - status of dot
  * @retval
  */
-void Display_WriteBufferSimple(uint8_t position, uint8_t symbol)
+void Display_WriteBufferSimple(uint8_t position, uint8_t symbol, bool dot)
 {
-DrawBuffer[position]=Symbols[symbol];
+DrawBuffer[position].Symbol = symbol;
+DrawBuffer[position].Dot = dot;
 }
 
 

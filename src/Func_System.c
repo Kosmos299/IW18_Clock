@@ -31,6 +31,7 @@ bool DispIRQFlag = FALSE;
 uint16_t TimeBaseCnt = 0;
 
 bool TEMPFLAG = FALSE;
+uint8_t TEMPCNT = 0;
 
 void SysTick_Handler()
 {
@@ -172,7 +173,6 @@ void TIM4_IRQHandler()
 					//Check if 10 * 10 * 10ms = 1s already has passed
 					if (!(stTimers.T100[T100_1S]))
 					{
-
 						stTimers.T100[T100_1S] = 10;
 						// decrement 1s timers
 						for (i = 0; i < CNT_1000MS; i++)
@@ -217,7 +217,14 @@ if (GPIO_ReadOutputDataBit(LED_PORT, led))
 else
 	GPIO_SetBits(LED_PORT, led);
 }
-////////////////////////////////
+
+/**
+  * @brief  IO Handler.
+  * Handle state of all buttons leds and encoder.
+  * Checks if set alarm is triggered, rings buzzer if needed.
+  * @param  None
+  * @retval None
+  */
 void SystemIO_Handler()
 {
 	//Status LEDs
@@ -243,25 +250,92 @@ void SystemIO_Handler()
 
 	//Alarm
 }
-////////////////////////////////
+
+/**
+  * @brief  Device state machine.
+  * Handle actual state of the device, determines display content, etc.
+  * @param  None
+  * @retval None
+  */
 void StateMachine_Handler()
 {
-uint8_t i = 0;
   switch (SystemState)
   {
     case MSM_STARTUP:
+    {
     	/* clock startup */
     	Display_Init();
     	VBUS_BoostInit();
-
-    	for (i=0;i<9;i++)
-    	{
-    	Display_WriteBufferSimple(i, 9);
-    	}
-
     	Clock_Init();
-    	SystemState = MSM_CLK_DISP_HRS;
+
+    	/* set up next state */
+    	stTimers.T100[T100_STARTDELAY] = 25;
+    	SystemState = MSM_CLK_DISP_TEST;
+
     	TERMINAL("Startup complete.\n\r");
+    }
+    break;
+
+    case MSM_CLK_DISP_TEST:
+    {
+    	for (int i=0;i<8;i++)
+    	{
+    	Display_WriteBufferSimple(i, 8, FALSE);
+    	}
+    	Display_WriteBufferSimple(8, 13, FALSE);
+
+        if(!stTimers.T100[T100_STARTDELAY])
+        {
+        	SystemState = /*MSM_CLK_DISP_DATE;*/MSM_CLK_DISP_HRS;
+        }
+    }
+    break;
+
+    case MSM_CLK_DISP_HRS:
+    {
+    	uint8_t THH = 0, TMM = 0, TSS = 0;
+    	Time_Get(&THH,&TMM,&TSS);
+
+    	Display_WriteBufferSimple(8, 10, FALSE);
+    	Display_WriteBufferSimple(7, 10, FALSE);
+    	Display_WriteBufferSimple(6, 10, FALSE);
+    	Display_WriteBufferSimple(5, (THH/10)%10, FALSE);
+    	Display_WriteBufferSimple(4, THH%10, GetSecondsFlag());
+    	Display_WriteBufferSimple(3, (TMM/10)%10, FALSE);
+    	Display_WriteBufferSimple(2, TMM%10, FALSE);
+    	Display_WriteBufferSimple(1, 10, FALSE);
+    	Display_WriteBufferSimple(0, 10, FALSE);
+    }
+    break;
+
+    case MSM_CLK_DISP_DATE:
+    {
+    	uint8_t TDD = 0, TMM = 0;
+    	uint16_t TYY = 0;
+    	Date_Get(&TDD,&TMM,&TYY);
+
+    	Display_WriteBufferSimple(8, 10, FALSE);
+    	Display_WriteBufferSimple(7, (TDD/10)%10, FALSE);
+    	Display_WriteBufferSimple(6, TDD%10, TRUE);
+    	Display_WriteBufferSimple(5, (TMM/10)%10, FALSE);
+    	Display_WriteBufferSimple(4, TMM%10, TRUE);
+    	Display_WriteBufferSimple(3, (TYY/1000)%10, FALSE);
+    	Display_WriteBufferSimple(2, (TYY/100)%10, FALSE);
+    	Display_WriteBufferSimple(1, (TYY/10)%10, FALSE);
+    	Display_WriteBufferSimple(0, TYY%10, FALSE);
+
+//        if(!stTimers.T100[T100_DATE_DISP_TIME])
+//        {
+//        	SystemState = MSM_CLK_DISP_HRS;
+//        }
+    }
+    break;
+
+    case MSM_CLK_DISP_TEMP:
+
+    break;
+
+    case MSM_CLK_SET:
 
     break;
 
@@ -271,44 +345,6 @@ uint8_t i = 0;
     break;
 
     case MSM_ERROR:
-
-    break;
-
-    case MSM_CLK_DISP_TEST:
-
-    break;
-
-    case MSM_CLK_DISP_HRS:
-
-        if(!stTimers.T1000[T1000_TESTTIMER])
-        {
-      	  stTimers.T1000[T1000_TESTTIMER] = 2;
-
-      	  if (TEMPFLAG == TRUE)
-      	  {
-          	  VFD_Set(0b1111111111110000);
-          	  TEMPFLAG = FALSE;
-      	  }
-      	  else
-       	  {
-          	  VFD_Set(0b1111111111111111);
-          	  TEMPFLAG = TRUE;
-      	  }
-
-        }
-
-
-    break;
-
-    case MSM_CLK_DISP_DATE:
-
-    break;
-
-    case MSM_CLK_DISP_TEMP:
-
-    break;
-
-    case MSM_CLK_SET:
 
     break;
   }

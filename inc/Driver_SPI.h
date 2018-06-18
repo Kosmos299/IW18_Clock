@@ -28,6 +28,7 @@
 void SPI1_Config (void);
 void SPI2_Config (void);
 void SPI_Send16(SPI_TypeDef* SPIx, uint16_t data_written);
+void SPI_Send8(SPI_TypeDef* SPIx, uint8_t data_written);
 
 void VFD_Set(uint32_t data_written);
 

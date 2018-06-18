@@ -28,8 +28,8 @@
 #define T100_OVLOAD_HIGH        2
 #define T100_OVLOAD_SUPER_HIGH  3
 #define T100_UPSLOPE            4
-#define T100_DOWNSLOPE          5
-#define T100_ERROR              6
+#define T100_DATE_DISP_TIME     5	//Display Date length
+#define T100_STARTDELAY         6	//Starting display delay
 #define T100_ERRORLED  			7 	//Error LED blink period
 #define T100_STATUSLED       	8  	//Status LED blink period
 

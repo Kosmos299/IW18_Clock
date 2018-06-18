@@ -79,13 +79,13 @@ void SPI1_Config (void)
 
 	spi_struct.SPI_Direction = SPI_Direction_1Line_Tx;
 	spi_struct.SPI_Mode = SPI_Mode_Master;
-	spi_struct.SPI_DataSize = SPI_DataSize_16b;
+	spi_struct.SPI_DataSize = SPI_DataSize_8b; //16b
 	spi_struct.SPI_CPOL = SPI_CPOL_Low; 		// clock is low while idling
 	spi_struct.SPI_CPHA = SPI_CPHA_1Edge; 		// data is recognized on first edge of clk
 	spi_struct.SPI_NSS = SPI_NSS_Soft;
-	spi_struct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	spi_struct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;//APB2 = 32Mhz
 	spi_struct.SPI_FirstBit = SPI_FirstBit_MSB; // data is sent MSB first
-	spi_struct.SPI_CRCPolynomial = 7;
+	//spi_struct.SPI_CRCPolynomial = 7;
 
 	SPI_Init(SPI1, &spi_struct);
 
@@ -150,12 +150,32 @@ void SPI2_Config (void)
 
 
 /**
-  * @brief  SPI1 Send
-  * Test send 16bits over SPI1 routine.
+  * @brief  SPI Send 16bits
+  * Test send 16bits over SPI routine.
   * @param  None
   * @retval None
   */
 void SPI_Send16(SPI_TypeDef* SPIx, uint16_t data_written)
+{
+  uint32_t timeout = 0xFFFFFF;
+
+  timeout = 0xFFFFFF;
+  while (SPI_I2S_GetFlagStatus(SPIx, SPI_I2S_FLAG_TXE ) == RESET)
+  {
+    timeout--;
+    if (!timeout)
+      break;
+  }
+  SPI_I2S_SendData(SPIx, data_written);
+}
+
+/**
+  * @brief  SPI Send
+  * Test send 16bits over SPI1 routine.
+  * @param  None
+  * @retval None
+  */
+void SPI_Send8(SPI_TypeDef* SPIx, uint8_t data_written)
 {
   uint32_t timeout = 0xFFFFFF;
 
@@ -177,16 +197,20 @@ void SPI_Send16(SPI_TypeDef* SPIx, uint16_t data_written)
 void VFD_Set(uint32_t data_written)
 {
 	// divide data into segments
-	uint16_t data_l, data_h;
+	uint8_t data_h, data_m, data_l;
 
-	data_l = data_written & 0x0000FFFF;
-	data_h = (data_written >> 16) & 0xFFFF;
+	data_h = (uint8_t)(data_written >> 16);
+	data_m = (uint8_t)(data_written >> 8);
+	data_l = (uint8_t)(data_written & 0x000000FF);
 
 	//send data in two parts, MSB first
 	VFD_BLANK
 
-	SPI_Send16(SPI1, data_h);
-	SPI_Send16(SPI1, data_l);
+	//SPI_Send16(SPI1, data_h);
+	//SPI_Send16(SPI1, data_l);
+	SPI_Send8(SPI1, data_h);
+	SPI_Send8(SPI1, data_m);
+	SPI_Send8(SPI1, data_l);
 	//wait 100ns - at 32MHz, 1 nop = ~32ns
 	asm ("nop");
 	asm ("nop");
